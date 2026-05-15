@@ -13,7 +13,6 @@ import { useRandomUsers } from '../dal/randomUser/useRandomUsersAPI';
 import { useExistingUserIds } from '../dal/user/useUserAPI';
 import { UsersTable } from '../components/UsersTable/UsersTable';
 import { randomUserToRow } from '../components/UsersTable/UsersTable.utils';
-import { BackButton } from '../components/BackButton';
 import { useUserRowFilter } from '../hooks/useUserRowFilter';
 
 export function RandomListPage() {
@@ -27,7 +26,6 @@ export function RandomListPage() {
 
   return (
     <Stack>
-      <BackButton />
       <Title order={2}>Random Users</Title>
 
       <TextInput

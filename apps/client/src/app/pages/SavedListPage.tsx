@@ -12,7 +12,6 @@ import { IconAlertCircle, IconSearch } from '@tabler/icons-react';
 import { useUsers } from '../dal/user/useUserAPI';
 import { UsersTable } from '../components/UsersTable/UsersTable';
 import { savedUserToRow } from '../components/UsersTable/UsersTable.utils';
-import { BackButton } from '../components/BackButton';
 import { useUserRowFilter } from '../hooks/useUserRowFilter';
 
 export function SavedListPage() {
@@ -24,7 +23,6 @@ export function SavedListPage() {
 
   return (
     <Stack>
-      <BackButton />
       <Title order={2}>Saved Profiles</Title>
 
       <TextInput

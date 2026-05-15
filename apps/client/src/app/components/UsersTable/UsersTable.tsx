@@ -6,8 +6,8 @@ import type { UserRow } from './UsersTable.utils';
 interface UsersTableProps {
   users: UserRow[];
   onRowClick: (id: string) => void;
-  /** Map of id → exists-in-DB. Rows whose id is `true` get a "Saved" badge. */
-  existingIdsMap?: Record<string, boolean>;
+  /** Sparse map of id → true for ids that exist in the DB. Missing key = not saved. */
+  existingIdsMap?: Record<string, true>;
 }
 
 function SavedBadge() {

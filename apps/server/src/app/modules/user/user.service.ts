@@ -12,14 +12,13 @@ class UserService {
     return db.select().from(UsersTable).where(eq(UsersTable.id, id)).get();
   }
 
-  existingIdsMap(ids: string[]): Record<string, boolean> {
+  existingIdsMap(ids: string[]): Record<string, true> {
     const rows = db
       .select({ id: UsersTable.id })
       .from(UsersTable)
       .where(inArray(UsersTable.id, ids))
       .all();
-    const existing = new Set(rows.map((r) => r.id));
-    return Object.fromEntries(ids.map((id) => [id, existing.has(id)]));
+    return Object.fromEntries(rows.map((r) => [r.id, true]));
   }
 
   create(data: SaveUserDTO): SavedUser {

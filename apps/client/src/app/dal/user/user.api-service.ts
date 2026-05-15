@@ -45,11 +45,11 @@ export const userApiService = {
     await api.delete(`/users/${id}`);
   },
 
-  existingIdsMap: async (ids: string[]): Promise<Record<string, boolean>> => {
-    const { data } = await api.post<Record<string, boolean>>(
-      '/users/exists',
-      { ids },
-    );
+  // Server returns only the existing ids (mapped to `true`). Absent key → not saved.
+  existingIdsMap: async (ids: string[]): Promise<Record<string, true>> => {
+    const { data } = await api.post<Record<string, true>>('/users/exists', {
+      ids,
+    });
     return data;
   },
 };

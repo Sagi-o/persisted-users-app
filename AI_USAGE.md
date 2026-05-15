@@ -1,0 +1,3 @@
+# AI Usage
+
+I used Claude Code (Anthropic's CLI agent, running locally in VS Code) throughout this assignment. Concretely: scaffolding the Nx workspace targets, drafting the Fastify route + controller/service split, the Drizzle schema and migration-on-boot wiring, the Mantine table/profile layouts, and several of the BiDi `dir` overrides on Screen 3. Tab-completion in the editor came from GitHub Copilot for small things like Mantine prop names. Nothing here is pasted-and-forgotten — every file went through a read pass where I rewrote anything I couldn't defend (the validation strategy, the query-cache key shape, the SQLite pragmas, the `/exists` endpoint design, the RTL/LTR split, the in-memory mutation path for unsaved profiles).

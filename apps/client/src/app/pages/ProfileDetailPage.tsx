@@ -24,7 +24,6 @@ import {
   IconEdit,
   IconTrash,
 } from '@tabler/icons-react';
-import { BackButton } from '../components/BackButton';
 import type { RandomUser } from '../dal/randomUser/randomUser.api-service';
 import {
   RANDOM_USERS_KEY,
@@ -98,7 +97,6 @@ export function ProfileDetailPage() {
   if (!isValidSource) {
     return (
       <Stack>
-        <BackButton />
         <Alert color="red" icon={<IconAlertCircle size={16} />}>
           Unknown profile source.
         </Alert>
@@ -123,7 +121,6 @@ export function ProfileDetailPage() {
   if (error) {
     return (
       <Stack>
-        <BackButton />
         <Alert color="red" icon={<IconAlertCircle size={16} />}>
           Failed to load profile.
         </Alert>
@@ -133,7 +130,6 @@ export function ProfileDetailPage() {
   if (!profile) {
     return (
       <Stack>
-        <BackButton />
         <Alert color="yellow" icon={<IconAlertCircle size={16} />}>
           Profile not found.
         </Alert>
@@ -220,7 +216,6 @@ export function ProfileDetailPage() {
 
   return (
     <Stack>
-      <BackButton />
 
       <div dir="rtl">
         <Stack>

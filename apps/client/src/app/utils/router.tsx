@@ -1,5 +1,6 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 import App from '../app';
+import { AppShell } from '../components/AppShell';
 import { HomePage } from '../pages/HomePage';
 import { RandomListPage } from '../pages/RandomListPage';
 import { SavedListPage } from '../pages/SavedListPage';
@@ -11,9 +12,14 @@ export const routes: RouteObject[] = [
     element: <App />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'random', element: <RandomListPage /> },
-      { path: 'saved', element: <SavedListPage /> },
-      { path: 'profile/:source/:id', element: <ProfileDetailPage /> },
+      {
+        element: <AppShell />,
+        children: [
+          { path: 'random', element: <RandomListPage /> },
+          { path: 'saved', element: <SavedListPage /> },
+          { path: 'profile/:source/:id', element: <ProfileDetailPage /> },
+        ],
+      },
     ],
   },
 ];
