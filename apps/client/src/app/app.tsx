@@ -13,7 +13,7 @@ export function App() {
     >
       <Container size="md" py="xl">
         <Stack>
-          <Title order={1}>persisted-users-app</Title>
+          <Title order={1}>Persisted Users</Title>
           <Group>
             <Button component={Link} to="/">Home</Button>
             <Button component={Link} to="/page-2" variant="light">Page 2</Button>
