@@ -21,6 +21,7 @@ import {
   IconAlertCircle,
   IconDeviceFloppy,
   IconEdit,
+  IconRefresh,
   IconTrash,
 } from '@tabler/icons-react';
 import type { RandomUser } from '../dal/randomUser/randomUser.api-service';
@@ -129,11 +130,26 @@ export function ProfileDetailPage() {
     );
   }
   if (!profile) {
+    const handleFetchNewUsers = () => {
+      // Drop the cached batch so /random refetches a fresh set of people.
+      queryClient.removeQueries({ queryKey: [RANDOM_USERS_KEY] });
+      navigate('/random');
+    };
     return (
       <Stack>
         <Alert color="yellow" icon={<IconAlertCircle size={16} />}>
           Profile not found.
         </Alert>
+        <Group>
+          <Button
+            variant="subtle"
+            size="xs"
+            leftSection={<IconRefresh size={14} />}
+            onClick={handleFetchNewUsers}
+          >
+            Fetch new users
+          </Button>
+        </Group>
       </Stack>
     );
   }
