@@ -9,8 +9,11 @@ import * as ReactDOM from 'react-dom/client';
 import { MantineProvider } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './app/app';
 import { theme } from './app/utils/mantine';
+
+const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement,
@@ -18,13 +21,15 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <StrictMode>
-    <MantineProvider theme={theme}>
-      <ModalsProvider>
-        <Notifications />
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </ModalsProvider>
-    </MantineProvider>
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider theme={theme} defaultColorScheme="dark" forceColorScheme="dark">
+        <ModalsProvider>
+          <Notifications />
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </ModalsProvider>
+      </MantineProvider>
+    </QueryClientProvider>
   </StrictMode>,
 );
