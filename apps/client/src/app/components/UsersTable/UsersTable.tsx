@@ -1,13 +1,29 @@
-import { Avatar, Card, Group, Stack, Table, Text } from '@mantine/core';
+import { Avatar, Badge, Card, Group, Stack, Table, Text } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
+import { IconBookmarkFilled } from '@tabler/icons-react';
 import type { UserRow } from './UsersTable.utils';
 
 interface UsersTableProps {
   users: UserRow[];
   onRowClick: (id: string) => void;
+  /** Map of id → exists-in-DB. Rows whose id is `true` get a "Saved" badge. */
+  existingIdsMap?: Record<string, boolean>;
 }
 
-export function UsersTable({ users, onRowClick }: UsersTableProps) {
+function SavedBadge() {
+  return (
+    <Badge
+      size="xs"
+      color="teal"
+      variant="light"
+      leftSection={<IconBookmarkFilled size={10} />}
+    >
+      Saved
+    </Badge>
+  );
+}
+
+export function UsersTable({ users, onRowClick, existingIdsMap }: UsersTableProps) {
   const isMobile = useMediaQuery('(max-width: 48em)');
 
   if (isMobile) {
@@ -25,9 +41,12 @@ export function UsersTable({ users, onRowClick }: UsersTableProps) {
             <Group wrap="nowrap" align="flex-start">
               <Avatar src={u.thumbnail} radius="xl" />
               <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
-                <Text fw={500} truncate>
-                  {u.fullName}
-                </Text>
+                <Group gap={6} wrap="nowrap">
+                  <Text fw={500} truncate>
+                    {u.fullName}
+                  </Text>
+                  {existingIdsMap?.[u.id] && <SavedBadge />}
+                </Group>
                 <Text size="sm" c="dimmed" tt="capitalize">
                   {u.gender} · {u.country}
                 </Text>
@@ -67,7 +86,12 @@ export function UsersTable({ users, onRowClick }: UsersTableProps) {
             <Table.Td>
               <Avatar src={u.thumbnail} radius="xl" />
             </Table.Td>
-            <Table.Td>{u.fullName}</Table.Td>
+            <Table.Td>
+              <Group gap={6} wrap="nowrap">
+                {u.fullName}
+                {existingIdsMap?.[u.id] && <SavedBadge />}
+              </Group>
+            </Table.Td>
             <Table.Td tt="capitalize">{u.gender}</Table.Td>
             <Table.Td>{u.country}</Table.Td>
             <Table.Td>{u.phone}</Table.Td>

@@ -26,3 +26,9 @@ export const UpdateNameDTO = z.object({
   lastName: z.string().min(1),
 });
 export type UpdateNameDTO = z.infer<typeof UpdateNameDTO>;
+
+// Cap at 200 to bound the IN clause; the random-list page only sends ~10.
+export const ExistingIdsDTO = z.object({
+  ids: z.array(z.string().min(1)).min(1).max(200),
+});
+export type ExistingIdsDTO = z.infer<typeof ExistingIdsDTO>;

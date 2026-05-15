@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 import { UsersTable, type SavedUser } from '@org/shared';
 import { db } from '../../utils/db.js';
 import type { SaveUserDTO, UpdateNameDTO } from './user.dto.js';
@@ -10,6 +10,16 @@ class UserService {
 
   getById(id: string): SavedUser | undefined {
     return db.select().from(UsersTable).where(eq(UsersTable.id, id)).get();
+  }
+
+  existingIdsMap(ids: string[]): Record<string, boolean> {
+    const rows = db
+      .select({ id: UsersTable.id })
+      .from(UsersTable)
+      .where(inArray(UsersTable.id, ids))
+      .all();
+    const existing = new Set(rows.map((r) => r.id));
+    return Object.fromEntries(ids.map((id) => [id, existing.has(id)]));
   }
 
   create(data: SaveUserDTO): SavedUser {

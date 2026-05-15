@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { validate } from '../../utils/validate.js';
 import { userService } from './user.service.js';
-import { SaveUserDTO, UpdateNameDTO } from './user.dto.js';
+import { ExistingIdsDTO, SaveUserDTO, UpdateNameDTO } from './user.dto.js';
 
 export const userController = async (app: FastifyInstance) => {
   app.get('/', async () => {
@@ -21,6 +21,14 @@ export const userController = async (app: FastifyInstance) => {
     }
     const created = userService.create(body);
     reply.code(201).send(created);
+  });
+
+  // Batch membership lookup. Returns `{ id: boolean }` for every input id so
+  // the client can do O(1) lookups without building a Set client-side.
+  // POST to keep ids in the body (URL length / encoding) and signal "with body".
+  app.post('/exists', async (req) => {
+    const { ids } = validate(ExistingIdsDTO, req.body);
+    return userService.existingIdsMap(ids);
   });
 
   app.patch<{ Params: { id: string } }>('/:id', async (req) => {

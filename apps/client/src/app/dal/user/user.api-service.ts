@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { api } from '../api';
 import type { SavedUser } from '@org/shared';
 
@@ -16,6 +17,20 @@ export const userApiService = {
     return data;
   },
 
+  // 404 → null lets callers use a single query to answer
+  // "is this user persisted?" without splitting an error path.
+  getById: async (id: string): Promise<SavedUser | null> => {
+    try {
+      const { data } = await api.get<SavedUser>(`/users/${id}`);
+      return data;
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 404) {
+        return null;
+      }
+      throw err;
+    }
+  },
+
   create: async (user: CreateUserPayload): Promise<SavedUser> => {
     const { data } = await api.post<SavedUser>('/users', user);
     return data;
@@ -28,5 +43,13 @@ export const userApiService = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/users/${id}`);
+  },
+
+  existingIdsMap: async (ids: string[]): Promise<Record<string, boolean>> => {
+    const { data } = await api.post<Record<string, boolean>>(
+      '/users/exists',
+      { ids },
+    );
+    return data;
   },
 };

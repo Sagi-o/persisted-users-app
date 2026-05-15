@@ -11,7 +11,6 @@ import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { router } from './app/utils/router';
-import { theme } from './app/utils/mantine';
 
 const queryClient = new QueryClient();
 
@@ -22,7 +21,7 @@ const root = ReactDOM.createRoot(
 root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <MantineProvider theme={theme} defaultColorScheme="dark" forceColorScheme="dark">
+      <MantineProvider defaultColorScheme="dark" forceColorScheme="dark">
         <ModalsProvider>
           <Notifications />
           <RouterProvider router={router} />

@@ -1,4 +1,5 @@
-import type { RandomUser, SavedUser } from '@org/shared';
+import type { SavedUser } from '@org/shared';
+import type { RandomUser } from '../../dal/randomUser/randomUser.api-service';
 
 /**
  * Normalized row shape consumed by `UsersTable`. Lets the same component

@@ -10,6 +10,7 @@ import {
 } from '@mantine/core';
 import { IconAlertCircle, IconSearch } from '@tabler/icons-react';
 import { useRandomUsers } from '../dal/randomUser/useRandomUsersAPI';
+import { useExistingUserIds } from '../dal/user/useUserAPI';
 import { UsersTable } from '../components/UsersTable/UsersTable';
 import { randomUserToRow } from '../components/UsersTable/UsersTable.utils';
 import { BackButton } from '../components/BackButton';
@@ -21,6 +22,8 @@ export function RandomListPage() {
 
   const rows = (data ?? []).map(randomUserToRow);
   const { filter, setFilter, filtered } = useUserRowFilter(rows);
+
+  const { data: existingIdsMap } = useExistingUserIds(rows.map((r) => r.id));
 
   return (
     <Stack>
@@ -52,6 +55,7 @@ export function RandomListPage() {
         <UsersTable
           users={filtered}
           onRowClick={(id) => navigate(`/profile/random/${id}`)}
+          existingIdsMap={existingIdsMap}
         />
       )}
     </Stack>
