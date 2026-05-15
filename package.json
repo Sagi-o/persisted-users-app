@@ -3,7 +3,11 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "nx run-many -t=serve --projects=client,server"
+    "dev": "nx run-many -t=serve --projects=client,server",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "private": true,
   "devDependencies": {
@@ -25,6 +29,7 @@
     "@swc/jest": "~0.2.38",
     "@testing-library/dom": "10.4.0",
     "@testing-library/react": "16.3.0",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/jest": "^30.0.0",
     "@types/node": "20.19.9",
     "@types/react": "^19.0.0",
@@ -32,6 +37,7 @@
     "@vitejs/plugin-react": "^6.0.0",
     "@vitest/coverage-v8": "~4.1.0",
     "@vitest/ui": "~4.1.0",
+    "drizzle-kit": "^0.31.10",
     "esbuild": "^0.27.0",
     "jest": "^30.0.2",
     "jest-environment-node": "^30.0.2",
@@ -55,6 +61,7 @@
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@fastify/autoload": "~6.0.3",
+    "@fastify/cors": "^11.2.0",
     "@fastify/sensible": "~6.0.2",
     "@mantine/charts": "^8.3.18",
     "@mantine/core": "^8.3.18",
@@ -64,11 +71,14 @@
     "@mantine/modals": "^8.3.18",
     "@mantine/notifications": "^8.3.18",
     "axios": "^1.6.0",
+    "better-sqlite3": "^12.10.0",
     "dayjs": "^1.11.20",
+    "drizzle-orm": "^0.45.2",
     "fastify": "~5.2.1",
     "fastify-plugin": "~5.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "6.30.3"
+    "react-router-dom": "6.30.3",
+    "zod": "^4.4.3"
   }
 }
