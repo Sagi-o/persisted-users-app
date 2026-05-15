@@ -83,6 +83,7 @@
     "drizzle-orm": "^0.45.2",
     "fastify": "~5.2.1",
     "fastify-plugin": "~5.0.1",
+    "nuqs": "^2.8.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "6.30.3",

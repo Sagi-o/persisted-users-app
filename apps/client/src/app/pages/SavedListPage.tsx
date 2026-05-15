@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { Alert, Stack, Text, TextInput, Title } from '@mantine/core';
-import { IconAlertCircle, IconSearch } from '@tabler/icons-react';
+import { Alert, Stack, Text, Title } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
+import { parseAsString, useQueryState } from 'nuqs';
 import { useUsers } from '../dal/user/useUserAPI';
+import { FilterInput } from '../components/FilterInput';
 import { UsersTable } from '../components/UsersTable/UsersTable';
 import { UsersTableSkeleton } from '../components/UsersTable/UsersTableSkeleton';
 import { savedUserToRow } from '../components/UsersTable/UsersTable.utils';
@@ -12,17 +14,23 @@ export function SavedListPage() {
   const { data, isLoading, error } = useUsers();
 
   const rows = (data ?? []).map(savedUserToRow);
-  const { filter, setFilter, filtered } = useUserRowFilter(rows);
+  // Filter lives in `?q=` so it survives navigating into a profile and back,
+  // and can be linked/bookmarked. `clearOnDefault` strips the empty value
+  // from the URL so a blank filter leaves a clean address bar.
+  const filterState = useQueryState(
+    'q',
+    parseAsString.withDefault('').withOptions({ clearOnDefault: true }),
+  );
+  const { filter, setFilter, filtered } = useUserRowFilter(rows, filterState);
 
   return (
     <Stack>
       <Title order={2}>Saved Profiles</Title>
 
-      <TextInput
-        placeholder="Filter by name or country"
+      <FilterInput
         value={filter}
-        onChange={(e) => setFilter(e.currentTarget.value)}
-        leftSection={<IconSearch size={16} />}
+        onChange={setFilter}
+        placeholder="Filter by name or country"
       />
 
       {error && (

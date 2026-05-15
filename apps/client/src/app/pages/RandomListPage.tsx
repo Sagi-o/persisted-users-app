@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { Alert, Stack, Text, TextInput, Title } from '@mantine/core';
-import { IconAlertCircle, IconSearch } from '@tabler/icons-react';
+import { Alert, Stack, Text, Title } from '@mantine/core';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { useRandomUsers } from '../dal/randomUser/useRandomUsersAPI';
 import { useExistingUserIds } from '../dal/user/useUserAPI';
+import { FilterInput } from '../components/FilterInput';
 import { UsersTable } from '../components/UsersTable/UsersTable';
 import { UsersTableSkeleton } from '../components/UsersTable/UsersTableSkeleton';
 import { randomUserToRow } from '../components/UsersTable/UsersTable.utils';
@@ -21,11 +22,10 @@ export function RandomListPage() {
     <Stack>
       <Title order={2}>Random Users</Title>
 
-      <TextInput
-        placeholder="Filter by name or country"
+      <FilterInput
         value={filter}
-        onChange={(e) => setFilter(e.currentTarget.value)}
-        leftSection={<IconSearch size={16} />}
+        onChange={setFilter}
+        placeholder="Filter by name or country"
       />
 
       {error && (
