@@ -4,10 +4,8 @@ import {
   Alert,
   Avatar,
   Button,
-  Center,
   Divider,
   Group,
-  Loader,
   SimpleGrid,
   Stack,
   Text,
@@ -23,6 +21,7 @@ import {
   IconAlertCircle,
   IconDeviceFloppy,
   IconEdit,
+  IconRefresh,
   IconTrash,
 } from '@tabler/icons-react';
 import type { RandomUser } from '../dal/randomUser/randomUser.api-service';
@@ -42,6 +41,7 @@ import {
   savedUserToProfile,
   type ProfileView,
 } from './ProfileDetailPage.utils';
+import { ProfileDetailSkeleton } from './ProfileDetailSkeleton';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 type Source = 'random' | 'saved';
@@ -118,11 +118,7 @@ export function ProfileDetailPage() {
     userQuery.error ?? (source === 'random' ? randomQuery.error : null);
 
   if (isLoading) {
-    return (
-      <Center py="xl">
-        <Loader />
-      </Center>
-    );
+    return <ProfileDetailSkeleton />;
   }
   if (error) {
     return (
@@ -139,6 +135,16 @@ export function ProfileDetailPage() {
         <Alert color="yellow" icon={<IconAlertCircle size={16} />}>
           Profile not found.
         </Alert>
+        <Group>
+          <Button
+            variant="subtle"
+            size="xs"
+            leftSection={<IconRefresh size={14} />}
+            onClick={() => navigate('/random')}
+          >
+            Fetch new users
+          </Button>
+        </Group>
       </Stack>
     );
   }

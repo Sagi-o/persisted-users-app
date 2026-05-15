@@ -6,5 +6,12 @@ import { useMediaQuery } from '@mantine/hooks';
 const MOBILE_QUERY = '(max-width: 48em)';
 
 export function useIsMobile(): boolean {
-  return useMediaQuery(MOBILE_QUERY) ?? false;
+  // `getInitialValueInEffect: false` evaluates the query in the useState
+  // initializer instead of a post-mount effect, so the first paint already
+  // reflects the real viewport — avoids a flash of the desktop layout on
+  // mobile while the effect resolves.
+  return (
+    useMediaQuery(MOBILE_QUERY, false, { getInitialValueInEffect: false }) ??
+    false
+  );
 }

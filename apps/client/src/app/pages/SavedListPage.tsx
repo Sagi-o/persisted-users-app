@@ -40,7 +40,7 @@ export function SavedListPage() {
       )}
 
       {isLoading ? (
-        <UsersTableSkeleton rows={8} />
+        <UsersTableSkeleton rows={10} />
       ) : rows.length === 0 ? (
         <Text c="dimmed" ta="center" py="lg">
           No saved profiles yet. Open Fetch and save someone first.
