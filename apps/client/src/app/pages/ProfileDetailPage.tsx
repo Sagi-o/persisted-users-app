@@ -154,10 +154,8 @@ export function ProfileDetailPage() {
     createMutation.mutate(
       { ...profile, ...form.getValues() },
       {
-        onSuccess: () => {
-          notifications.show({ color: 'green', message: 'Profile saved' });
-          navigate('/saved');
-        },
+        onSuccess: () =>
+          notifications.show({ color: 'green', message: 'Profile saved' }),
         onError: () =>
           notifications.show({
             color: 'red',
@@ -165,6 +163,10 @@ export function ProfileDetailPage() {
           }),
       },
     );
+    // Optimistic navigation: onMutate already prepended the user to the saved
+    // list and flipped the exists-map; if the server rejects, the rollback
+    // removes the row on /saved and the onError notification surfaces there.
+    navigate('/saved');
   };
 
   const handleUpdate = () => {
@@ -210,16 +212,18 @@ export function ProfileDetailPage() {
       confirmProps: { color: 'red' },
       onConfirm: () => {
         deleteMutation.mutate(profile.id, {
-          onSuccess: () => {
-            notifications.show({ color: 'green', message: 'Profile deleted' });
-            navigate('/saved');
-          },
+          onSuccess: () =>
+            notifications.show({ color: 'green', message: 'Profile deleted' }),
           onError: () =>
             notifications.show({
               color: 'red',
               message: 'Failed to delete profile',
             }),
         });
+        // Optimistic navigation: the row is already gone from the list cache
+        // via onMutate. If the server rejects, the rollback restores the row
+        // on /saved and the onError notification surfaces there.
+        navigate('/saved');
       },
     });
   };
