@@ -1,4 +1,5 @@
-import { Avatar, Table } from '@mantine/core';
+import { Avatar, Card, Group, Stack, Table, Text } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import type { UserRow } from './UsersTable.utils';
 
 interface UsersTableProps {
@@ -7,6 +8,43 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ users, onRowClick }: UsersTableProps) {
+  const isMobile = useMediaQuery('(max-width: 48em)');
+
+  if (isMobile) {
+    return (
+      <Stack gap="sm">
+        {users.map((u) => (
+          <Card
+            key={u.id}
+            withBorder
+            padding="sm"
+            radius="md"
+            onClick={() => onRowClick(u.id)}
+            style={{ cursor: 'pointer' }}
+          >
+            <Group wrap="nowrap" align="flex-start">
+              <Avatar src={u.thumbnail} radius="xl" />
+              <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
+                <Text fw={500} truncate>
+                  {u.fullName}
+                </Text>
+                <Text size="sm" c="dimmed" tt="capitalize">
+                  {u.gender} · {u.country}
+                </Text>
+                <Text size="sm" truncate>
+                  {u.email}
+                </Text>
+                <Text size="sm" c="dimmed">
+                  {u.phone}
+                </Text>
+              </Stack>
+            </Group>
+          </Card>
+        ))}
+      </Stack>
+    );
+  }
+
   return (
     <Table highlightOnHover withTableBorder verticalSpacing="sm">
       <Table.Thead>
