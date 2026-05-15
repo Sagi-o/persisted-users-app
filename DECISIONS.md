@@ -27,13 +27,18 @@ The principle: declare RTL once at the container and override locally on every n
 
 ## Corners cut, and what production would look like
 
-- **No optimistic mutations.** Save/Update/Delete invalidate the query cache on success; the UI waits a beat. In prod I'd add `onMutate` + rollback on error.
 - **No tests.** The build is the only verification. In prod I'd add Vitest covering save-from-random → appears-in-saved → delete, against a real Fastify instance + an in-memory SQLite.
 - **No pagination.** Saved list returns everything ordered by `createdAt DESC`. Fine here; cursor pagination in prod.
 - **No retry/refetch button on the random list.** `staleTime: Infinity` keeps the 10 random users stable within a session; refreshing the page is the only way to get a new batch. A "Shuffle" button would be a one-liner.
 - **SQLite migrations applied at boot.** Convenient for a take-home; in prod I'd run migrations as a separate deploy step and fail-fast if the schema is unexpected.
 - **Single SQLite file on disk.** See decision #2 — Postgres in prod.
 
-## Extension — "Already saved" badge backed by `POST /api/users/exists`
+## Extensions
 
-I added a sparse-map batch endpoint and a Mantine `Badge` in the random list that marks rows already in the DB. Picked it over a loading skeleton or optimistic updates because it actually changes the user's decision before they click into Screen 3 — they can see at a glance which of the 10 randoms they already own. The alternative shape (`GET /:id` per row, count 404s) is wasteful, race-prone, and pollutes the cache with 10 negative entries; the batch endpoint is one round trip, returns a `{ id: true }` map (absent key = not saved), and is capped at 200 ids server-side via Zod. **Next hour:** optimistic create/delete so the badge flips instantly when you save, plus a Mantine `<Skeleton>` row while the random list loads.
+### "Already saved" badge backed by `POST /api/users/exists`
+
+A sparse-map batch endpoint and a Mantine `Badge` in the random list mark rows already in the DB. Picked it over a loading skeleton because it changes the user's decision before they click into Screen 3 — they can see at a glance which of the 10 randoms they already own. The alternative shape (`GET /:id` per row, count 404s) is wasteful, race-prone, and pollutes the cache with negative entries; the batch endpoint is one round trip, returns a `{ id: true }` map (absent key = not saved), and is capped at 200 ids server-side via Zod.
+
+### Optimistic create / update / delete
+
+Save, Update, and Delete now apply locally before the server replies. `useCreateUser` / `useUpdateUser` / `useDeleteUser` in `useUserAPI.ts` snapshot the relevant caches on `onMutate`, mutate the optimistic state (list, single-user, and every `exists` cache entry that contains the id), and roll back on `onError`. `onSettled` invalidates so the server-stamped `createdAt` reconciles back in. The visible win pairs with the badge: clicking Save in the random list flips the row's "Saved" badge instantly, and clicking Delete on a saved profile removes it from the list before navigating away. **Next hour:** retry-with-backoff on mutation failure plus a Mantine `<Skeleton>` row while the random list loads.

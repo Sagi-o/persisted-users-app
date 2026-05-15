@@ -1,17 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import {
-  Alert,
-  Center,
-  Loader,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from '@mantine/core';
+import { Alert, Stack, Text, TextInput, Title } from '@mantine/core';
 import { IconAlertCircle, IconSearch } from '@tabler/icons-react';
 import { useRandomUsers } from '../dal/randomUser/useRandomUsersAPI';
 import { useExistingUserIds } from '../dal/user/useUserAPI';
 import { UsersTable } from '../components/UsersTable/UsersTable';
+import { UsersTableSkeleton } from '../components/UsersTable/UsersTableSkeleton';
 import { randomUserToRow } from '../components/UsersTable/UsersTable.utils';
 import { useUserRowFilter } from '../hooks/useUserRowFilter';
 
@@ -42,9 +35,7 @@ export function RandomListPage() {
       )}
 
       {isLoading ? (
-        <Center py="xl">
-          <Loader />
-        </Center>
+        <UsersTableSkeleton rows={10} />
       ) : filtered.length === 0 ? (
         <Text c="dimmed" ta="center" py="lg">
           No users match your filter.

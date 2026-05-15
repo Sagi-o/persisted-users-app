@@ -1,16 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import {
-  Alert,
-  Center,
-  Loader,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from '@mantine/core';
+import { Alert, Stack, Text, TextInput, Title } from '@mantine/core';
 import { IconAlertCircle, IconSearch } from '@tabler/icons-react';
 import { useUsers } from '../dal/user/useUserAPI';
 import { UsersTable } from '../components/UsersTable/UsersTable';
+import { UsersTableSkeleton } from '../components/UsersTable/UsersTableSkeleton';
 import { savedUserToRow } from '../components/UsersTable/UsersTable.utils';
 import { useUserRowFilter } from '../hooks/useUserRowFilter';
 
@@ -39,9 +32,7 @@ export function SavedListPage() {
       )}
 
       {isLoading ? (
-        <Center py="xl">
-          <Loader />
-        </Center>
+        <UsersTableSkeleton rows={8} />
       ) : rows.length === 0 ? (
         <Text c="dimmed" ta="center" py="lg">
           No saved profiles yet. Open Fetch and save someone first.
