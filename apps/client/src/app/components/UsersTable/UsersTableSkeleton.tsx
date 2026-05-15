@@ -1,5 +1,5 @@
 import { Card, Group, Skeleton, Stack, Table } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface UsersTableSkeletonProps {
   rows?: number;
@@ -9,7 +9,7 @@ interface UsersTableSkeletonProps {
 // when the real rows land — same row count, same column widths, same card
 // shape on mobile.
 export function UsersTableSkeleton({ rows = 8 }: UsersTableSkeletonProps) {
-  const isMobile = useMediaQuery('(max-width: 48em)');
+  const isMobile = useIsMobile();
   const placeholders = Array.from({ length: rows });
 
   if (isMobile) {

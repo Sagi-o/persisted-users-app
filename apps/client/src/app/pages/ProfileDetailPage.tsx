@@ -42,6 +42,7 @@ import {
   savedUserToProfile,
   type ProfileView,
 } from './ProfileDetailPage.utils';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 type Source = 'random' | 'saved';
 
@@ -53,6 +54,7 @@ const LTR_INPUT = {
 export function ProfileDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const { source, id } = useParams<{ source: Source; id: string }>();
   const isValidSource = source === 'random' || source === 'saved';
 
@@ -233,17 +235,31 @@ export function ProfileDetailPage() {
 
       <div dir="rtl">
         <Stack>
-          <Group align="center" wrap="nowrap">
-            <Avatar src={profile.pictureLarge} size={160} radius="50%" />
-            <Stack gap={4} style={{ minWidth: 0 }}>
-              <Title order={2} dir="ltr" style={{ textAlign: 'left' }}>
-                {fullName}
-              </Title>
-              <Text c="dimmed" tt="capitalize">
-                {profile.gender}
-              </Text>
+          {isMobile ? (
+            <Stack align="center" gap={8}>
+              <Avatar src={profile.pictureLarge} size={120} radius="50%" />
+              <Stack gap={2} align="center">
+                <Title order={3} dir="ltr" style={{ textAlign: 'center' }}>
+                  {fullName}
+                </Title>
+                <Text c="dimmed" tt="capitalize" size="sm">
+                  {profile.gender}
+                </Text>
+              </Stack>
             </Stack>
-          </Group>
+          ) : (
+            <Group align="center" wrap="nowrap">
+              <Avatar src={profile.pictureLarge} size={160} radius="50%" />
+              <Stack gap={4} style={{ minWidth: 0 }}>
+                <Title order={2} dir="ltr" style={{ textAlign: 'left' }}>
+                  {fullName}
+                </Title>
+                <Text c="dimmed" tt="capitalize">
+                  {profile.gender}
+                </Text>
+              </Stack>
+            </Group>
+          )}
 
           <Divider />
 

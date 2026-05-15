@@ -1,5 +1,5 @@
 import { Avatar, Badge, Card, Group, Stack, Table, Text } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { IconBookmarkFilled } from '@tabler/icons-react';
 import type { UserRow } from './UsersTable.utils';
 
@@ -24,7 +24,7 @@ function SavedBadge() {
 }
 
 export function UsersTable({ users, onRowClick, existingIdsMap }: UsersTableProps) {
-  const isMobile = useMediaQuery('(max-width: 48em)');
+  const isMobile = useIsMobile();
 
   if (isMobile) {
     return (
