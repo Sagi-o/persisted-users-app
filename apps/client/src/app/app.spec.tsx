@@ -1,27 +1,28 @@
 import { render } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { MantineProvider } from '@mantine/core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import App from './app';
+import { routes } from './utils/router';
 import { theme } from './utils/mantine';
 
-const renderApp = () =>
-  render(
-    <MantineProvider theme={theme}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </MantineProvider>,
+const renderAt = (path: string) => {
+  const router = createMemoryRouter(routes, { initialEntries: [path] });
+  const queryClient = new QueryClient();
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider theme={theme}>
+        <RouterProvider router={router} />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
+};
 
 describe('App', () => {
-  it('should render successfully', () => {
-    const { baseElement } = renderApp();
-    expect(baseElement).toBeTruthy();
-  });
-
-  it('should render the title', () => {
-    const { getByText } = renderApp();
-    expect(getByText('persisted-users-app')).toBeTruthy();
+  it('renders the home screen at /', () => {
+    const { getByText } = renderAt('/');
+    expect(getByText('Persisted Users')).toBeTruthy();
+    expect(getByText('Fetch')).toBeTruthy();
+    expect(getByText('History')).toBeTruthy();
   });
 });

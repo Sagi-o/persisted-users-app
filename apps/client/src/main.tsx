@@ -4,13 +4,13 @@ import '@mantine/charts/styles.css';
 import '@mantine/notifications/styles.css';
 
 import { StrictMode } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { RouterProvider } from 'react-router-dom';
 import * as ReactDOM from 'react-dom/client';
 import { MantineProvider } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import App from './app/app';
+import { router } from './app/utils/router';
 import { theme } from './app/utils/mantine';
 
 const queryClient = new QueryClient();
@@ -25,9 +25,7 @@ root.render(
       <MantineProvider theme={theme} defaultColorScheme="dark" forceColorScheme="dark">
         <ModalsProvider>
           <Notifications />
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <RouterProvider router={router} />
         </ModalsProvider>
       </MantineProvider>
     </QueryClientProvider>
