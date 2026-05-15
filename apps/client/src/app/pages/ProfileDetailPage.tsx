@@ -130,11 +130,6 @@ export function ProfileDetailPage() {
     );
   }
   if (!profile) {
-    const handleFetchNewUsers = () => {
-      // Drop the cached batch so /random refetches a fresh set of people.
-      queryClient.removeQueries({ queryKey: [RANDOM_USERS_KEY] });
-      navigate('/random');
-    };
     return (
       <Stack>
         <Alert color="yellow" icon={<IconAlertCircle size={16} />}>
@@ -145,7 +140,7 @@ export function ProfileDetailPage() {
             variant="subtle"
             size="xs"
             leftSection={<IconRefresh size={14} />}
-            onClick={handleFetchNewUsers}
+            onClick={() => navigate('/random')}
           >
             Fetch new users
           </Button>
