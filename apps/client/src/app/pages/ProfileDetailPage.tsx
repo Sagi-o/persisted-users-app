@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Alert,
@@ -15,6 +15,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
@@ -73,22 +74,25 @@ export function ProfileDetailPage() {
       ? randomUserToProfile(randomUser)
       : undefined;
 
-  const [title, setTitle] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const form = useForm({
+    initialValues: { title: '', firstName: '', lastName: '' },
+  });
   const initializedFor = useRef<string | null>(null);
 
-  // Seed the editable name from the loaded profile, but only once per id —
+  // Seed the form from the loaded profile, but only once per id —
   // re-running on every profile-object reference would clobber user edits
-  // when the query cache updates beneath us.
+  // when the query cache updates beneath us. `form.initialize` resets the
+  // dirty baseline so isDirty() correctly reports false right after seeding.
   useEffect(() => {
     if (profile && initializedFor.current !== profile.id) {
-      setTitle(profile.title);
-      setFirstName(profile.firstName);
-      setLastName(profile.lastName);
+      form.initialize({
+        title: profile.title,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+      });
       initializedFor.current = profile.id;
     }
-  }, [profile]);
+  }, [profile, form]);
 
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
@@ -137,21 +141,18 @@ export function ProfileDetailPage() {
     );
   }
 
+  const { title, firstName, lastName } = form.getValues();
   const fullName = `${title} ${firstName} ${lastName}`.trim();
   const birthYear = getBirthYear(profile.dobDate);
   const canSave = !isSaved;
   const canDelete = isSaved;
   // Guard with `initializedFor` so the brief window between profile load and
-  // the seeding `useEffect` doesn't read as "dirty" (empty state vs profile).
-  const isDirty =
-    initializedFor.current === profile.id &&
-    (title !== profile.title ||
-      firstName !== profile.firstName ||
-      lastName !== profile.lastName);
+  // the seeding `useEffect` doesn't read as "dirty" (empty form vs profile).
+  const isDirty = initializedFor.current === profile.id && form.isDirty();
 
   const handleSave = () => {
     createMutation.mutate(
-      { ...profile, title, firstName, lastName },
+      { ...profile, ...form.getValues() },
       {
         onSuccess: () => {
           notifications.show({ color: 'green', message: 'Profile saved' });
@@ -167,9 +168,10 @@ export function ProfileDetailPage() {
   };
 
   const handleUpdate = () => {
+    const values = form.getValues();
     if (isSaved) {
       updateMutation.mutate(
-        { id: profile.id, payload: { title, firstName, lastName } },
+        { id: profile.id, payload: values },
         {
           onSuccess: () =>
             notifications.show({ color: 'green', message: 'Profile updated' }),
@@ -185,10 +187,18 @@ export function ProfileDetailPage() {
     queryClient.setQueryData<RandomUser[]>([RANDOM_USERS_KEY], (prev) =>
       prev?.map((u) =>
         u.login.uuid === profile.id
-          ? { ...u, name: { title, first: firstName, last: lastName } }
+          ? {
+              ...u,
+              name: {
+                title: values.title,
+                first: values.firstName,
+                last: values.lastName,
+              },
+            }
           : u,
       ),
     );
+    form.resetDirty();
     notifications.show({ color: 'green', message: 'Name updated locally' });
   };
 
@@ -237,21 +247,18 @@ export function ProfileDetailPage() {
           <SimpleGrid cols={{ base: 1, sm: 3 }}>
             <TextInput
               label="תואר"
-              value={title}
-              onChange={(e) => setTitle(e.currentTarget.value)}
               styles={LTR_INPUT}
+              {...form.getInputProps('title')}
             />
             <TextInput
               label="שם פרטי"
-              value={firstName}
-              onChange={(e) => setFirstName(e.currentTarget.value)}
               styles={LTR_INPUT}
+              {...form.getInputProps('firstName')}
             />
             <TextInput
               label="שם משפחה"
-              value={lastName}
-              onChange={(e) => setLastName(e.currentTarget.value)}
               styles={LTR_INPUT}
+              {...form.getInputProps('lastName')}
             />
           </SimpleGrid>
 
