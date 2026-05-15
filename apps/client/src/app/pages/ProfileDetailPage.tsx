@@ -4,10 +4,8 @@ import {
   Alert,
   Avatar,
   Button,
-  Center,
   Divider,
   Group,
-  Loader,
   SimpleGrid,
   Stack,
   Text,
@@ -42,6 +40,7 @@ import {
   savedUserToProfile,
   type ProfileView,
 } from './ProfileDetailPage.utils';
+import { ProfileDetailSkeleton } from './ProfileDetailSkeleton';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 type Source = 'random' | 'saved';
@@ -118,11 +117,7 @@ export function ProfileDetailPage() {
     userQuery.error ?? (source === 'random' ? randomQuery.error : null);
 
   if (isLoading) {
-    return (
-      <Center py="xl">
-        <Loader />
-      </Center>
-    );
+    return <ProfileDetailSkeleton />;
   }
   if (error) {
     return (
