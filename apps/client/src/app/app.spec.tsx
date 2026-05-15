@@ -4,14 +4,13 @@ import { MantineProvider } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { routes } from './utils/router';
-import { theme } from './utils/mantine';
 
 const renderAt = (path: string) => {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   const queryClient = new QueryClient();
   return render(
     <QueryClientProvider client={queryClient}>
-      <MantineProvider theme={theme}>
+      <MantineProvider>
         <RouterProvider router={router} />
       </MantineProvider>
     </QueryClientProvider>,

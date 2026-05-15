@@ -10,10 +10,16 @@ import {
 
 export const USERS_KEY = 'users';
 
+// staleTime: Infinity across the user queries — mutations are the only thing
+// that can change this data, and they already invalidate on settle. Without
+// it, a query mounted right after an optimistic mutation (e.g. navigating to
+// /saved after a Save) auto-refetches and races the in-flight POST/DELETE,
+// briefly replacing the optimistic row with a stale server response.
 export const useUsers = () => {
   return useQuery({
     queryKey: [USERS_KEY],
     queryFn: userApiService.getAll,
+    staleTime: Infinity,
   });
 };
 
@@ -24,6 +30,7 @@ export const useUser = (id: string | undefined) => {
     queryKey: [USERS_KEY, id],
     queryFn: () => userApiService.getById(id as string),
     enabled: !!id,
+    staleTime: Infinity,
   });
 };
 
@@ -36,6 +43,7 @@ export const useExistingUserIds = (ids: string[]) => {
     queryKey: [USERS_KEY, 'exists', sortedIds],
     queryFn: () => userApiService.existingIdsMap(ids),
     enabled: ids.length > 0,
+    staleTime: Infinity,
   });
 };
 
@@ -61,8 +69,11 @@ export const useCreateUser = () =>
     apply: (queryClient, user) => {
       // Server stamps `createdAt`; the placeholder gets replaced on settle.
       const optimistic: SavedUser = { ...user, createdAt: new Date() };
+      // Only prepend when the list has been loaded — seeding `[optimistic]`
+      // into an empty cache would render /saved as a single-row list until
+      // the refetch fills it in, producing a visible "growing list" flash.
       queryClient.setQueryData<SavedUser[]>([USERS_KEY], (prev) =>
-        prev ? [optimistic, ...prev] : [optimistic],
+        prev ? [optimistic, ...prev] : prev,
       );
       queryClient.setQueryData<SavedUser | null>(
         [USERS_KEY, user.id],
