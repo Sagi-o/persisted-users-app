@@ -12,8 +12,10 @@ export type UpdateNamePayload = {
 };
 
 export const userApiService = {
-  getAll: async (): Promise<SavedUser[]> => {
-    const { data } = await api.get<SavedUser[]>('/users');
+  getAll: async (q?: string): Promise<SavedUser[]> => {
+    const { data } = await api.get<SavedUser[]>('/users', {
+      params: q ? { q } : undefined,
+    });
     return data;
   },
 

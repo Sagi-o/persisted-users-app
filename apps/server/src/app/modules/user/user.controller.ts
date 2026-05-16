@@ -1,11 +1,17 @@
 import type { FastifyInstance } from 'fastify';
 import { validate } from '../../utils/validate.js';
 import { userService } from './user.service.js';
-import { ExistingIdsDTO, SaveUserDTO, UpdateNameDTO } from './user.dto.js';
+import {
+  ExistingIdsDTO,
+  ListUsersQueryDTO,
+  SaveUserDTO,
+  UpdateNameDTO,
+} from './user.dto.js';
 
 export const userController = async (app: FastifyInstance) => {
-  app.get('/', async () => {
-    return userService.list();
+  app.get<{ Querystring: { q?: string } }>('/', async (req) => {
+    const { q } = validate(ListUsersQueryDTO, req.query);
+    return userService.list(q);
   });
 
   app.get<{ Params: { id: string } }>('/:id', async (req) => {
