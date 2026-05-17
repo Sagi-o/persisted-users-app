@@ -10,9 +10,14 @@ Every piece of "shared" state in this app is server-owned: the random list (cach
 
 A JSON file is one `fs.writeFileSync` away from a corruption bug under concurrent writes, and forces every read to parse the whole blob. SQLite gets real transactions, indexed lookups, and the `IN (...)` query the `/exists` endpoint relies on for free. Drizzle gives type-safe queries and uses `InferSelectModel` so the `SavedUser` type the client consumes is the same shape the DB returns — no parallel hand-typed DTO to drift. WAL mode is enabled so reads don't block during writes; foreign keys are turned on (SQLite ships with them off). **Tradeoff:** SQLite is a single-writer database on one disk. In production with multiple server instances I'd swap to Postgres — the Drizzle layer makes that a connection-string change plus regenerating the migrations, not a rewrite.
 
-### 3. Single debounced filter input at 200ms, behind a hook
+### 3. Debounce only where it pays for itself — two filter hooks, not one
 
-One input filtering on name OR country matches what users actually type ("italy", "akira"). Two inputs would force the user to know which column their term belongs to. The 200ms debounce is in [`useUserRowFilter.ts`](apps/client/src/app/hooks/useUserRowFilter.ts) using Mantine's `useDebouncedValue` — long enough to skip per-keystroke filtering, short enough to feel instant. Pulling it behind a hook means Screen 1 and Screen 2 share identical filter semantics with zero duplication. **Tradeoff:** very slow typists may see a noticeable lag before results appear; for 10–100 rows the cost of filtering on every keystroke would also be fine and would feel snappier. With thousands of rows or a server-side filter, debouncing earns its keep.
+One input filtering on name OR country matches what users actually type ("italy", "akira"). Two inputs would force the user to know which column their term belongs to. Where the filter work actually happens differs by screen, and the hooks reflect that:
+
+- Screen 1 (random list) filters in JS over ~10–100 rows. [`useUserRowFilter.ts`](apps/client/src/app/hooks/useUserRowFilter.ts) holds the input value and computes `filtered` synchronously — no debounce, because the filter is sub-millisecond and a 200ms delay would just be perceived input lag.
+- Screen 2 (saved list) hits `/api/users?q=`. [`useSavedUsersSearch.ts`](apps/client/src/app/hooks/useSavedUsersSearch.ts) bundles nuqs' `useQueryState` for the URL-backed value with Mantine's `useDebouncedValue` at 200ms for the value the query actually fires on — short enough to feel instant, long enough to skip a server round trip per keystroke.
+
+**Tradeoff:** two hooks instead of one shared one, so the filter call sites diverge slightly. The alternative — one hook with an "always debounce" knob — either meant 200ms of input lag on the random list for no benefit, or a parameter that's two hooks in a trench coat. With thousands of rows or any per-keystroke server work, debouncing earns its keep; for sub-ms client-side filtering, it doesn't.
 
 ## RTL/LTR approach on Screen 3
 
@@ -37,12 +42,16 @@ The principle: declare RTL once at the container and override locally on every n
 
 ### "Already saved" badge backed by `POST /api/users/exists`
 
-A sparse-map batch endpoint and a Mantine `Badge` in the random list mark rows already in the DB. Picked it over a loading skeleton because it changes the user's decision before they click into Screen 3 — they can see at a glance which of the 10 randoms they already own. The alternative shape (`GET /:id` per row, count 404s) is wasteful, race-prone, and pollutes the cache with negative entries; the batch endpoint is one round trip, returns a `{ id: true }` map (absent key = not saved), and is capped at 200 ids server-side via Zod.
+A batch endpoint and a Mantine `Badge` mark rows in the random list that are already in the DB, so users see which of the 10 randoms they already own before clicking into Screen 3. Per-row `GET /:id` would be wasteful and pollute the cache with negative entries; the batch is one round trip, returns a sparse `{ id: true }` map, and caps at 200 ids server-side via Zod.
+
+### Loading skeletons on every async surface
+
+[`UsersTableSkeleton`](apps/client/src/app/components/UsersTable/UsersTableSkeleton.tsx) and [`ProfileDetailSkeleton`](apps/client/src/app/pages/ProfileDetailSkeleton.tsx) render the real layout — rows, columns, field grid — instead of a generic spinner, so the page reserves its final dimensions and there's no layout jank when data arrives.
 
 ### Optimistic create / update / delete
 
-Save, Update, and Delete now apply locally before the server replies. `useCreateUser` / `useUpdateUser` / `useDeleteUser` in `useUserAPI.ts` snapshot the relevant caches on `onMutate`, mutate the optimistic state (list, single-user, and every `exists` cache entry that contains the id), and roll back on `onError`. `onSettled` invalidates so the server-stamped `createdAt` reconciles back in. The plumbing is reused via a small `useOptimisticMutation` helper, so each mutation only writes the apply step. The visible win pairs with the badge: clicking Save in the random list flips the row's "Saved" badge instantly, and clicking Delete on a saved profile removes it from the list before navigating away.
+Save / Update / Delete apply locally before the server replies. The mutation hooks snapshot caches on `onMutate`, patch the list, single-user, and every `exists` entry holding the id, roll back on `onError`, and invalidate on `onSettled`. Reused via a `useOptimisticMutation` helper so each mutation only writes the apply step — clicking Save flips the "Saved" badge instantly; clicking Delete removes the row before navigating away.
 
 ### URL-backed filter on the saved profiles page
 
-The filter input on `/saved` is wired to a `?q=` search param via [nuqs](https://nuqs.dev/) (`useQueryState` with `parseAsString.withDefault('').withOptions({ clearOnDefault: true })`). Typing "italy" makes the URL `/saved?q=italy`; navigating into a profile and back restores the input; the filter is shareable and bookmarkable; an empty filter strips the param so the address bar stays clean. The shared `useUserRowFilter` hook now accepts an optional `[value, setter]` tuple so the saved page can plug nuqs in while the random page keeps using local state (random ids reshuffle on reload, so a sticky URL filter there would be misleading).
+The `/saved` input is wired to `?q=` via [nuqs](https://nuqs.dev/), so the filter is bookmarkable and survives navigating into a profile and back; `clearOnDefault` keeps a blank filter from polluting the URL. URL state and the 200ms debounce live in [`useSavedUsersSearch`](apps/client/src/app/hooks/useSavedUsersSearch.ts), so the page only sees `{ filter, setFilter, debouncedQ, isSearching }`. The random page keeps local state — random ids reshuffle on reload, so a sticky URL filter would mislead.
