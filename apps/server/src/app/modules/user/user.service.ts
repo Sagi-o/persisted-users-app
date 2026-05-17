@@ -1,11 +1,35 @@
-import { eq, desc, inArray } from 'drizzle-orm';
+import { eq, desc, inArray, or, sql } from 'drizzle-orm';
 import { UsersTable, type SavedUser } from '@org/shared';
 import { db } from '../../utils/db.js';
 import type { SaveUserDTO, UpdateNameDTO } from './user.dto.js';
 
+// LIKE treats `%` and `_` as wildcards, so escape them in user input;
+// the backslash is declared via `ESCAPE '\'` on the LIKE expression.
+function escapeLike(input: string): string {
+  return input.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
 class UserService {
-  list(): SavedUser[] {
-    return db.select().from(UsersTable).orderBy(desc(UsersTable.createdAt)).all();
+  list(q?: string): SavedUser[] {
+    const base = db.select().from(UsersTable);
+    if (!q) {
+      return base.orderBy(desc(UsersTable.createdAt)).all();
+    }
+    // Lowercase both sides so non-ASCII names (e.g. "Müller") match
+    // regardless of input case — SQLite's default LIKE is ASCII-only.
+    const pat = `%${escapeLike(q.toLowerCase())}%`;
+    return base
+      .where(
+        or(
+          sql`lower(${UsersTable.firstName}) like ${pat} escape '\\'`,
+          sql`lower(${UsersTable.lastName}) like ${pat} escape '\\'`,
+          sql`lower(${UsersTable.country}) like ${pat} escape '\\'`,
+          // Concatenated full name so "John Doe" matches across the space.
+          sql`lower(${UsersTable.firstName} || ' ' || ${UsersTable.lastName}) like ${pat} escape '\\'`,
+        ),
+      )
+      .orderBy(desc(UsersTable.createdAt))
+      .all();
   }
 
   getById(id: string): SavedUser | undefined {

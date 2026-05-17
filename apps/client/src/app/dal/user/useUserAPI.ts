@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 import type { SavedUser } from '@org/shared';
 import { useOptimisticMutation } from '../useOptimisticMutation';
@@ -9,17 +9,23 @@ import {
 } from './user.api-service';
 
 export const USERS_KEY = 'users';
+const LIST_KEY = 'list';
 
 // staleTime: Infinity across the user queries — mutations are the only thing
 // that can change this data, and they already invalidate on settle. Without
 // it, a query mounted right after an optimistic mutation (e.g. navigating to
 // /saved after a Save) auto-refetches and races the in-flight POST/DELETE,
 // briefly replacing the optimistic row with a stale server response.
-export const useUsers = () => {
+//
+// `q` is part of the key so each search term caches independently;
+// `keepPreviousData` keeps the previous results visible while the next
+// search is in flight, avoiding a skeleton flash on every keystroke.
+export const useUsers = (q = '') => {
   return useQuery({
-    queryKey: [USERS_KEY],
-    queryFn: userApiService.getAll,
+    queryKey: [USERS_KEY, LIST_KEY, q],
+    queryFn: () => userApiService.getAll(q || undefined),
     staleTime: Infinity,
+    placeholderData: keepPreviousData,
   });
 };
 
@@ -62,6 +68,22 @@ function patchExistsCaches(
   }
 }
 
+// Lists are cached per search term — fan the optimistic update out across
+// every `[USERS_KEY, 'list', *]` entry. The settled `invalidateQueries` on
+// `[USERS_KEY]` corrects any list whose membership the predicate changed
+// (e.g. an optimistically-prepended row that doesn't match the active q).
+function patchListCaches(
+  queryClient: QueryClient,
+  mutate: (prev: SavedUser[]) => SavedUser[],
+) {
+  const entries = queryClient.getQueriesData<SavedUser[]>({
+    queryKey: [USERS_KEY, LIST_KEY],
+  });
+  for (const [key, prev] of entries) {
+    if (prev) queryClient.setQueryData(key, mutate(prev));
+  }
+}
+
 export const useCreateUser = () =>
   useOptimisticMutation({
     mutationFn: (user: CreateUserPayload) => userApiService.create(user),
@@ -69,12 +91,7 @@ export const useCreateUser = () =>
     apply: (queryClient, user) => {
       // Server stamps `createdAt`; the placeholder gets replaced on settle.
       const optimistic: SavedUser = { ...user, createdAt: new Date() };
-      // Only prepend when the list has been loaded — seeding `[optimistic]`
-      // into an empty cache would render /saved as a single-row list until
-      // the refetch fills it in, producing a visible "growing list" flash.
-      queryClient.setQueryData<SavedUser[]>([USERS_KEY], (prev) =>
-        prev ? [optimistic, ...prev] : prev,
-      );
+      patchListCaches(queryClient, (prev) => [optimistic, ...prev]);
       queryClient.setQueryData<SavedUser | null>(
         [USERS_KEY, user.id],
         optimistic,
@@ -90,8 +107,8 @@ export const useUpdateUser = () =>
     scope: [USERS_KEY],
     apply: (queryClient, { id, payload }) => {
       const merge = (u: SavedUser): SavedUser => ({ ...u, ...payload });
-      queryClient.setQueryData<SavedUser[]>([USERS_KEY], (prev) =>
-        prev?.map((u) => (u.id === id ? merge(u) : u)),
+      patchListCaches(queryClient, (prev) =>
+        prev.map((u) => (u.id === id ? merge(u) : u)),
       );
       queryClient.setQueryData<SavedUser | null>([USERS_KEY, id], (prev) =>
         prev ? merge(prev) : prev,
@@ -104,9 +121,7 @@ export const useDeleteUser = () =>
     mutationFn: (id: string) => userApiService.delete(id),
     scope: [USERS_KEY],
     apply: (queryClient, id) => {
-      queryClient.setQueryData<SavedUser[]>([USERS_KEY], (prev) =>
-        prev?.filter((u) => u.id !== id),
-      );
+      patchListCaches(queryClient, (prev) => prev.filter((u) => u.id !== id));
       // `null` means "not saved" — same shape getById returns on 404.
       queryClient.setQueryData<SavedUser | null>([USERS_KEY, id], null);
       patchExistsCaches(queryClient, (prev) => {

@@ -32,3 +32,15 @@ export const ExistingIdsDTO = z.object({
   ids: z.array(z.string().min(1)).min(1).max(200),
 });
 export type ExistingIdsDTO = z.infer<typeof ExistingIdsDTO>;
+
+// `q` is optional; an empty / whitespace-only string is normalised away so
+// the service can treat "no filter" as a single case.
+export const ListUsersQueryDTO = z.object({
+  q: z
+    .string()
+    .trim()
+    .max(100)
+    .transform((v) => (v.length > 0 ? v : undefined))
+    .optional(),
+});
+export type ListUsersQueryDTO = z.infer<typeof ListUsersQueryDTO>;
